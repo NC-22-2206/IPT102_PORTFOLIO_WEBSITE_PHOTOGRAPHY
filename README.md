@@ -1,0 +1,2 @@
+# IPT102_PORTFOLIO_WEBSITE_PHOTOGRAPHY
+For educational purposes only
