@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Open in Browser",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8081/IPT102-Portfolio_Website",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}

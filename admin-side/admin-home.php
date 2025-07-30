@@ -1,0 +1,483 @@
+<?php
+include '../db_connection.php';
+
+$query = "SELECT category, description, image FROM projects";
+$result = $conn->query($query);
+?>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sean Aleta Photography: Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../client-side/header.css">
+    <link rel="stylesheet" href="../client-side/about.css">
+    <link rel="stylesheet" href="../client-side/style.css">
+    <link rel="stylesheet" href="../Chatbot/chatbot.css">
+    <link rel="stylesheet" href="admin-stylesheet.css">
+
+    <script src="admin-javascript.js"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo-wrapper">
+                <a class="logo" href="#"> <strong>CA</strong> Sean Aleta Photography</a>
+            </div>
+
+            <ul class="navbar-links">
+                <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="admin-gallery.php">Gallery</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="header">
+        <div class="container">
+            <div class="box">
+                <h4 class="">Welcome!</h4>
+                <h1 class="">I'm Sean Aleta</h1>
+                <p class="">
+                    Based in Quezon City, Philippines, I am a dedicated professional photographer specializing in capturing timeless moments and delivering exceptional visual storytelling.
+                    My passion lies in turning your special memories into stunning, lasting images.
+                </p>
+                <a href="#projects" class="btn">My Projects</a>
+                <a href="#contact" class="btn">Book Now</a>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- About section -->
+    <section class="about bg-light" id="about">
+        <div class="container">
+
+            <div class="box">
+                <h2 class="section-title"><span>THE ONE BEHIND THE LENS</span></h2>
+                <h2 class="title">
+                    Christian Aleta, known as Sean Aleta, Senior Multimedia Artist at Sworkx GFX
+                </h2>
+                <p>
+                    Behind every photograph lies a passion for storytelling and a dedication to
+                    capturing life's most meaningful moments. With a blend of creativity, skill, and a
+                    unique perspective, every frame reflects the emotions, details, and memories that
+                    matter most. Discover the journey, inspiration, and vision that shape the artistry
+                    behind the lens.
+                </p>
+                <ul>
+                    <li>
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                        <span>Over 10 years of experience</span>
+                    </li>
+                    <li>
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                        <span>300+ successfully executed projects</span>
+                    </li>
+                    <li>
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                        <span>Exceptional creativity and quality</span>
+                    </li>
+                </ul>
+
+                <!--<div class="about-bottom">
+                    <img src="./images/" alt="Christian Aleta's Signature" class="signature">
+                    <div class="about-name-wrapper">
+                        <div class="about-name-dark">Sean Aleta</div>
+                        <div class="about-rol">Senior Multimedia Artist</div>
+                        <div class="about-company">Sworkx GFX</div>
+                        <div class="about-location">Diliman, Quezon City</div>
+                    </div>
+                </div>-->
+            </div>
+
+            <div class="about-img">
+                <div class="img">
+                    <img src="..\images\header.jpg" alt="Christian Aleta">
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- About section -->
+
+    <section class="projects bg-dark" id="projects">
+    <div class="heading">
+        <h2 class="section-title"><span>My Projects</span></h2>
+        <p class="section-title2">
+            Explore my diverse photography projects that capture moments and stories from various perspectives.
+            From landscapes to portraits, each project showcases unique creativity and skill.
+        </p>
+        <button id="showFormButton" style="margin-left: 650px;">
+            <span class="material-icons">add_photo_alternate</span> Add New Project
+        </button>
+    </div>
+    <div class="container">
+        <?php
+        include '../db_connection.php';
+
+        // Fetch projects from the database
+        $query = "SELECT * FROM projects";
+        $result = $conn->query($query);
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $id = $row['project_id'];
+                $category = htmlspecialchars($row['category']);
+                $description = htmlspecialchars($row['description']);
+                $imagePath = htmlspecialchars($row['image']);
+
+                echo '<div class="box border-01">';
+                echo '<div class="item">';
+                echo '<img src="' . $imagePath . '" alt="' . $category . ' Photography">';
+                echo '<a href="gallery.php">';
+                echo '<h6>' . $category . '</h6>';
+                echo '<p>' . $description . '</p>';
+                echo '</a>';
+                echo '<button class="btn-delete" onclick="confirmDelete(' . $id . ')">Delete</button>';
+                echo '</div>';
+                echo '</div>';
+            }
+        } else {
+            echo "<p>No projects found.</p>";
+        }
+
+        $conn->close();
+        ?>
+
+<?php
+        include '../db_connection.php';
+
+        // Define the upload directory
+        $uploadDir = '../uploads/';
+
+        // Check if the form is submitted
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $category = $conn->real_escape_string($_POST['category']);
+            $description = $conn->real_escape_string($_POST['description']);
+
+            // Handle the image upload as a file
+            if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
+                // Generate a unique name for the uploaded file
+                $fileName = uniqid() . "_" . basename($_FILES['image']['name']);
+                $filePath = $uploadDir . $fileName;
+
+                // Ensure the upload directory exists, create it if necessary
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                // Move the uploaded file to the server directory
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
+                    // Prepare SQL query to store the file path in the database
+                    $stmt = $conn->prepare("INSERT INTO projects (category, description, image) VALUES (?, ?, ?)");
+                    $stmt->bind_param("sss", $category, $description, $filePath);
+
+                    // Execute the statement
+                    if ($stmt->execute()) {
+                        echo "<script>
+                        alert('New project added successfully.');
+                        window.location.href = 'admin-home.php';
+                      </script>";
+                    } else {
+                        echo "<script>
+                        alert('Error: " . addslashes($stmt->error) . "');
+                        window.location.href = 'admin-home.php';
+                      </script>";
+                    }
+
+                    // Close the statement
+                    $stmt->close();
+                } else {
+                    echo "<script>
+                    alert('Error saving the uploaded image.');
+                    window.location.href = 'admin-home.php';
+                  </script>";
+                }
+            } else {
+                echo "<script>
+                alert('Error uploading the image.');
+                window.location.href = 'admin-home.php';
+              </script>";
+            }
+        }
+
+        // Close the connection
+        $conn->close();
+        ?>
+    </div>
+
+    <!-- Overlay and Form -->
+    <div id="formOverlay" class="overlay">
+        <div class="form-container">
+            <button id="closeFormButton" class="close-button">&times;</button>
+            <form action="#" method="POST" enctype="multipart/form-data">
+                <label for="category">Project Title (Category):</label>
+                <input type="text" id="category" name="category" required><br><br>
+
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required></textarea><br><br>
+
+                <label for="image">Upload Image:</label>
+                <input type="file" id="image" name="image" accept="image/*" required><br><br>
+
+                <input type="submit" name="submit" value="Upload Project">
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Script for Add New Category
+        document.getElementById('showFormButton').addEventListener('click', function() {
+            document.getElementById('formOverlay').style.display = 'flex';
+        });
+
+        // Close the form overlay
+        document.getElementById('closeFormButton').addEventListener('click', function() {
+            document.getElementById('formOverlay').style.display = 'none';
+        });
+
+        // Close overlay when clicking outside the form
+        document.getElementById('formOverlay').addEventListener('click', function(event) {
+            if (event.target === this) {
+                this.style.display = 'none';
+            }
+        });
+
+        // Confirmation before delete
+        function confirmDelete(id) {
+            if (confirm('Are you sure you want to delete this project?')) {
+                window.location.href = 'delete_project.php?id=' + id;
+            }
+        }
+    </script>
+</section>
+
+    <!-- Projects section -->
+
+
+
+
+    <!-- Testimonial section -->
+
+    <!-- Testimonial section -->
+
+
+
+
+
+    <!-- Contact section -->
+    <section class="contact bg-light" id="contact">
+        <div class="container">
+
+            <div class="box">
+                <h2 class="title">
+                    Need help with professional photography? Let's work together!
+                </h2>
+                <ul>
+                    <li>
+                        <i class="fa fa-phone" aria-hidden="true"></i>
+                        <span>+63 927-948-0279</span>
+                    </li>
+                    <li>
+                        <i class="fa fa-at" aria-hidden="true"></i>
+                        <span>
+                            <a href="mailto:sworkxgfx@gmail.com">sworkxgfx@gmail.com</a>
+                        </span>
+                    </li>
+                    <li>
+                        <i class="fa fa-at" aria-hidden="true"></i>
+                        <span>
+                            <a href="mailto:seanaleta01@gmail.com">seanaleta01@gmail.com</a>
+                        </span>
+                    </li>
+                    <li class="location-item" style="cursor: pointer;">
+                        <i class="fa fa-location-pin" aria-hidden="true"></i>
+                        <span>Diliman, Quezon City</span>
+                        <div class="map-popup">
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1930.7053195457556!2d121.05064831579877!3d14.653746488725865!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7b340000001%3A0xb7b0d8c78efdd080!2sDiliman%2C%20Quezon%20City!5e0!3m2!1sen!2sph!4v1637160767691!5m2!1sen!2sph"
+                                width="500" height="400" style="border:0;" allowfullscreen="" loading="lazy">
+                            </iframe>
+                        </div>
+                    </li>
+                </ul>
+
+            </div>
+
+            <div class="box">
+                <div class="box-r">
+                    <div class="form-box">
+                        <div class="form-title">
+                            <h2>Book Me</h2>
+                        </div>
+                        <form action="" method="post">
+                            <div class="one-line">
+                                <div class="box-input">
+                                    <i class="far fa-user"></i>
+                                    <input type="text" name="" id="" class="text" placeholder="Full Name..">
+                                </div>
+                                <div class="box-input">
+                                    <i class="fa fa-phone"></i>
+                                    <input type="text" name="" id="" class="text" placeholder="your phone">
+                                </div>
+                            </div>
+
+                            <div class="box-input">
+                                <i class="fa fa-at"></i>
+                                <input type="email" name="" id="" class="text" placeholder="email..">
+                            </div>
+                            <div class="box-input">
+                                <label class="address"><i class="fa fa-location-pin"></i></label>
+                                <textarea name="" id="" cols="30" rows="5" placeholder="your address.."></textarea>
+                            </div>
+                            <button class="btn-send">Contact us</button>
+                        </form>
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+    <!-- Contact section -->
+
+
+
+
+
+
+    <!-- Chatbot section 
+    <div class="chatbox">
+        <div class="chatbox__support">
+            <div class="chatbox__header">
+                <div class="chatbox__image--header">
+                    <img src="https://img.icons8.com/color/48/000000/circled-user-female-skin-type-5--v1.png" alt="image">
+                </div>
+                <div class="chatbox__content--header">
+                    <h4 class="chatbox__heading--header">Chat support</h4>
+                    <p class="chatbox__description--header">Hello! Welcome to Sean Aleta Photography. How can I assist you today?</p>
+                </div>
+            </div>
+            <div class="chatbox__messages">
+                <div></div>
+            </div>
+            <div class="chatbox__footer">
+                <input type="text" placeholder="Write a message...">
+                <button class="chatbox__send--footer send__button">Send</button>
+            </div>
+        </div>
+        <div class="chatbox__button">
+            <button><svg width="36" height="29" viewBox="0 0 36 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M28.2857 10.5714C28.2857 4.88616 21.9576 0.285714 14.1429 0.285714C6.32813 0.285714 0 4.88616 0 10.5714C0 13.8259 2.08929 16.7388 5.34375 18.6272C4.66071 20.2946 3.77679 21.0781 2.9933 21.9621C2.77232 22.2232 2.51116 22.4643 2.59152 22.846C2.65179 23.1875 2.93304 23.4286 3.23438 23.4286C3.25446 23.4286 3.27455 23.4286 3.29464 23.4286C3.89732 23.3482 4.47991 23.2478 5.02232 23.1071C7.05134 22.5848 8.93973 21.721 10.6071 20.5357C11.7321 20.7366 12.9174 20.8571 14.1429 20.8571C21.9576 20.8571 28.2857 16.2567 28.2857 10.5714ZM36 15.7143C36 12.3594 33.7902 9.38616 30.3951 7.51786C30.6964 8.50223 30.8571 9.52679 30.8571 10.5714C30.8571 14.1674 29.0089 17.4821 25.654 19.933C22.5402 22.183 18.4621 23.4286 14.1429 23.4286C13.5603 23.4286 12.9576 23.3884 12.375 23.3482C14.8862 24.9955 18.221 26 21.8571 26C23.0826 26 24.2679 25.8795 25.3929 25.6786C27.0603 26.8638 28.9487 27.7277 30.9777 28.25C31.5201 28.3906 32.1027 28.4911 32.7054 28.5714C33.0268 28.6116 33.3281 28.3504 33.4085 27.9888C33.4888 27.6071 33.2277 27.3661 33.0067 27.1049C32.2232 26.221 31.3393 25.4375 30.6563 23.7701C33.9107 21.8817 36 18.9888 36 15.7143Z" fill="#b506066b" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    </div>
+
+    <script src="..\Chatbot\app.js"></script>
+     Chatbot section-->
+
+
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="newsletter">
+            <div class="container">
+                <div class="box">
+                    <!--<h2>Sign up to get latest update</h2>-->
+                    <!--<p>Sign up for our monthly newsletter for the latest news &amp; articles</p>-->
+                </div>
+                <div class="form">
+                    <!--<form>
+                        <input type="email" name="email" placeholder="Enter Email Address" required="">
+                        <button>Subscribe Now</button>
+                    </form>-->
+                </div>
+            </div>
+        </div>
+        <div class="second-footer">
+            <div class="container">
+                <div class="box">
+                    <div class="logo-wrapper">
+                        <a class="logo" href="home.php"> <strong>CA</strong> Sean Aleta Photography </a>
+                    </div>
+                    <div class="text">
+                        <p>Photography inila miss uman saten eliten finus vivera alacus miss the drudean seneice
+                            miss notumane tonec a fermen.</p>
+                    </div>
+                </div>
+                <div class="box">
+                    <h3 class="title">Quick Links</h3>
+                    <ul>
+                        <li><a href="about.php">About</a></li>
+                        <li><a href="projects.php">Projects</a></li>
+                        <li><a href="works.php">Works</a></li>
+                        <li><a href="blog.php">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="box">
+                    <h3 class="title">Contact</h3>
+                    <ul>
+                        <li>
+                            <i class="fa fa-phone"></i>
+                            <span>
+                                +63 927-948-0279
+                            </span>
+                        </li>
+                        <li>
+                            <i class="fa fa-at"></i>
+                            <span>
+                                <a href="mailto:sworkxgfx@gmail.com" style="text-transform: none;">sworkxgfx@gmail.com</a>
+                            </span>
+                        </li>
+                        <li>
+                            <i class="fa fa-at"></i>
+                            <span>
+                                <a href="mailto:seanaleta01@gmail.com" style="text-transform: none;">seanaleta01@gmail.com</a>
+                            </span>
+                        </li>
+                        <li>
+                            <span>
+                                Diliman, Quezon City
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <div class=" copyright">
+            <div class="box">
+                <p class="">Copyright © 2024 by <a href="#">ChristianAleta</a>. All rights reserved.</p>
+            </div>
+            <div class="box">
+                <ul class="social-icons">
+                    <li><a href="#"><i class="fab fa-facebook"></i></a></li>
+                    <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+                    <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
+                    <li><a href="#"><i class="fab fa-dribbble"></i></a></li>
+            </div>
+        </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
